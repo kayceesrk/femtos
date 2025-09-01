@@ -1,0 +1,11 @@
+(test
+ (name test_femtos)
+ (libraries femtos))
+
+(test
+ (name test_ivar)
+ (libraries sync femtos))
+
+(test
+ (name test_mvar)
+ (libraries sync femtos))

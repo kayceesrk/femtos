@@ -1,0 +1,4 @@
+(library
+ (name femtos)
+ (libraries threads.posix)
+ (modules femtos trigger))

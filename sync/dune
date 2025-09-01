@@ -1,0 +1,4 @@
+(library
+ (name sync)
+ (libraries femtos)
+ (modules sync ivar mvar))
