@@ -35,17 +35,3 @@ val put : 'a t -> 'a -> unit
 (** Take a value from the MVar. If the MVar is empty, blocks until a value is
     available. *)
 val take : 'a t -> 'a
-
-(** Try to put a value without blocking. Returns true if successful, false if
-    MVar is full. *)
-val try_put : 'a t -> 'a -> bool
-
-(** Try to take a value without blocking. Returns Some value if successful, None
-    if MVar is empty. *)
-val try_take : 'a t -> 'a option
-
-(** Check if the MVar is empty. *)
-val is_empty : 'a t -> bool
-
-(** Check if the MVar is full. *)
-val is_full : 'a t -> bool

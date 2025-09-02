@@ -19,6 +19,8 @@ let rec try_fill promise value =
       (* If CAS failed, state must have changed to Filled by another thread *)
       try_fill promise value
 
+let remove_trigger () = ()
+
 let rec read promise =
   match Atomic.get promise with
   | Filled value -> value
@@ -29,5 +31,6 @@ let rec read promise =
       match Effect.perform (Trigger.Await trigger) with
       | None -> read promise
       | Some (exn, backtrace) ->
+        remove_trigger ();
         Printexc.raise_with_backtrace exn backtrace)
     else read promise
