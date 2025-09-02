@@ -4,38 +4,41 @@ let test_promise_fill_and_exception () =
   let promise = Ivar.create () in
 
   (* Fill the promise *)
-  Ivar.fill promise 42 ;
+  let success = Ivar.try_fill promise 42 in
+  assert success ;
   Printf.printf "Filled promise with 42\n" ;
 
-  (* Try to fill again - should raise Already_filled *)
-  (try
-     Ivar.fill promise 100 ;
-     assert false (* Should not reach here *)
-   with Ivar.Already_filled ->
-     Printf.printf "Ivar Already_filled exception caught correctly\n") ;
+  (* Try to fill again - should return false *)
+  let success = Ivar.try_fill promise 100 in
+  if not success then
+    Printf.printf "Ivar try_fill correctly returned false for already filled promise\n"
+  else
+    assert false ; (* Should not reach here *)
 
-  Printf.printf "Ivar fill and exception test passed\n"
+  Printf.printf "Ivar fill and try_fill test passed\n"
 
 let test_promise_different_types () =
   let int_promise = Ivar.create () in
   let string_promise = Ivar.create () in
 
   (* Fill with different types *)
-  Ivar.fill int_promise 123 ;
-  Ivar.fill string_promise "hello world" ;
+  let success1 = Ivar.try_fill int_promise 123 in
+  let success2 = Ivar.try_fill string_promise "hello world" in
+  assert success1;
+  assert success2;
 
-  (* Try to fill again - both should raise Already_filled *)
-  (try
-     Ivar.fill int_promise 456 ;
-     assert false
-   with Ivar.Already_filled ->
-     Printf.printf "Int promise Already_filled test passed\n") ;
+  (* Try to fill again - both should return false *)
+  let success1 = Ivar.try_fill int_promise 456 in
+  if not success1 then
+    Printf.printf "Int promise try_fill correctly returned false\n"
+  else
+    assert false;
 
-  (try
-     Ivar.fill string_promise "goodbye" ;
-     assert false
-   with Ivar.Already_filled ->
-     Printf.printf "String promise Already_filled test passed\n") ;
+  let success2 = Ivar.try_fill string_promise "goodbye" in
+  if not success2 then
+    Printf.printf "String promise try_fill correctly returned false\n"
+  else
+    assert false;
 
   Printf.printf "Different types test passed\n"
 
