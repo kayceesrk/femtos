@@ -1,4 +1,4 @@
-open Femtos_core
+open Femtos
 
 let test_trigger_state_transitions () =
   let trigger = Trigger.create () in

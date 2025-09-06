@@ -1,4 +1,5 @@
 (library
+ (public_name femtos.sync)
  (name femtos_sync)
  (libraries femtos_core)
  (modules femtos_sync ivar mvar))

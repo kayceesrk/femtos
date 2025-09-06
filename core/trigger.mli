@@ -12,8 +12,8 @@ type t
 (** Create a new trigger. *)
 val create : unit -> t
 
-(** Signal the trigger with a value. If the trigger has already been signaled or
-    canceled, returns [false]. Otherwise, returns [true]. *)
+(** Signal the trigger. If the trigger has already been signaled or canceled,
+    returns [false]. Otherwise, returns [true]. *)
 val signal : t -> bool
 
 (** Cancel the trigger with an exception and a backtrace. If the trigger has

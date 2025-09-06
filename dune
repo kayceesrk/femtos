@@ -1,0 +1,5 @@
+(library
+ (public_name femtos)
+ (name femtos)
+ (libraries femtos_core femtos_sync)
+ (modules femtos))
