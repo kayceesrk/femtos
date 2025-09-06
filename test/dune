@@ -4,8 +4,12 @@
 
 (test
  (name test_ivar)
- (libraries femtos))
+ (libraries femtos femtos_mux))
 
 (test
  (name test_mvar)
- (libraries femtos))
+ (libraries femtos femtos_mux))
+
+(test
+ (name test_scheduler_integration)
+ (libraries femtos femtos_mux))

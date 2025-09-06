@@ -41,8 +41,44 @@ let test_promise_different_types () =
 
   Printf.printf "Different types test passed\n"
 
+let test_ivar_blocking_read () =
+  Printf.printf "Testing IVar blocking read with FIFO scheduler...\n" ;
+
+  let main () =
+    let ivar = Sync.Ivar.create () in
+    let result = ref None in
+
+    (* Start a reader that will block *)
+    Femtos_mux.Fifo.fork (fun () ->
+      Printf.printf "Reader: Starting to read from IVar...\n" ;
+      let value = Sync.Ivar.read ivar in
+      Printf.printf "Reader: Successfully read value %d\n" value ;
+      result := Some value
+    ) ;
+
+    (* Start a writer that will fill the IVar after a delay *)
+    Femtos_mux.Fifo.fork (fun () ->
+      Printf.printf "Writer: Yielding to let reader start...\n" ;
+      Femtos_mux.Fifo.yield () ;
+      Printf.printf "Writer: Filling IVar with 999\n" ;
+      let _ = Sync.Ivar.try_fill ivar 999 in
+      Printf.printf "Writer: IVar filled\n"
+    ) ;
+
+    Printf.printf "Main: Both fibers started\n" ;
+    Femtos_mux.Fifo.yield () ;
+
+    match !result with
+    | Some v -> Printf.printf "Main: Final result: %d\n" v
+    | None -> Printf.printf "Main: No result received\n"
+  in
+
+  Femtos_mux.Fifo.run main ;
+  Printf.printf "IVar blocking read test passed\n"
+
 let () =
   test_promise_fill_and_exception () ;
   test_promise_different_types () ;
+  test_ivar_blocking_read () ;
   Printf.printf
-    "All promise tests passed (without await - requires effect handler)!\n"
+    "All promise tests passed (including blocking operations with scheduler)!\n"
