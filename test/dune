@@ -21,3 +21,7 @@
 (test
  (name test_terminator_advanced)
  (libraries femtos))
+
+(test
+ (name test_multicore_domains)
+ (libraries femtos))

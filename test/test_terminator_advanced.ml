@@ -77,7 +77,9 @@ let test_normal_exchange () =
   in
 
   Mux.Fifo.run main ;
-  Printf.printf "Normal exchange test completed!\n%!"let test_concurrent_terminators () =
+  Printf.printf "Normal exchange test completed!\n%!"
+
+let test_concurrent_terminators () =
   Printf.printf "\n=== Testing multiple independent schedulers ===\n%!" ;
 
   Printf.printf "Running mass cancellation test in first scheduler...\n%!" ;
@@ -88,4 +90,5 @@ let test_normal_exchange () =
 
   Printf.printf "\nBoth schedulers completed independently!\n%!"
 
-let () = test_concurrent_terminators ()
+let () =
+  test_concurrent_terminators ()
