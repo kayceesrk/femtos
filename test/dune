@@ -17,3 +17,7 @@
 (test
  (name test_terminator)
  (libraries femtos))
+
+(test
+ (name test_terminator_advanced)
+ (libraries femtos))
