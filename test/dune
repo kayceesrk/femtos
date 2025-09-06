@@ -12,4 +12,4 @@
 
 (test
  (name test_scheduler_integration)
- (libraries femtos femtos_mux))
+ (libraries femtos))
