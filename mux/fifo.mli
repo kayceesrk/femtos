@@ -26,7 +26,7 @@
 
     Note: This is a cooperative operation - the current fiber continues
     execution immediately after forking. *)
-val fork : (unit -> unit) -> unit
+val fork : (Femtos_sync.Terminator.t -> unit) -> unit
 
 (** [yield ()] voluntarily gives up control to allow other fibers to run. The
     current fiber is moved to the end of the run queue and will be resumed later
@@ -49,4 +49,4 @@ val yield : unit -> unit
     other fibers to continue execution.
 
     @param main The initial function to execute *)
-val run : (unit -> unit) -> unit
+val run : (Femtos_sync.Terminator.t -> unit) -> unit

@@ -44,19 +44,19 @@ let test_promise_different_types () =
 let test_ivar_blocking_read () =
   Printf.printf "Testing IVar blocking read with FIFO scheduler...\n" ;
 
-  let main () =
+  let main _terminator =
     let ivar = Sync.Ivar.create () in
     let result = ref None in
 
     (* Start a reader that will block *)
-    Femtos_mux.Fifo.fork (fun () ->
+    Femtos_mux.Fifo.fork (fun _terminator ->
         Printf.printf "Reader: Starting to read from IVar...\n" ;
         let value = Sync.Ivar.read ivar in
         Printf.printf "Reader: Successfully read value %d\n" value ;
         result := Some value) ;
 
     (* Start a writer that will fill the IVar after a delay *)
-    Femtos_mux.Fifo.fork (fun () ->
+    Femtos_mux.Fifo.fork (fun _terminator ->
         Printf.printf "Writer: Yielding to let reader start...\n" ;
         Femtos_mux.Fifo.yield () ;
         Printf.printf "Writer: Filling IVar with 999\n" ;

@@ -1,12 +1,14 @@
 open Femtos_core
 
-type _ Effect.t += Fork  : (unit -> unit) -> unit Effect.t
+type _ Effect.t += Fork  : (Femtos_sync.Terminator.t -> unit) -> unit Effect.t
 type _ Effect.t += Yield : unit Effect.t
 
 let fork f = Effect.perform (Fork f)
 let yield () = Effect.perform Yield
 
 let run main =
+  (* Create a single terminator for the entire scheduler *)
+  let terminator = Femtos_sync.Terminator.create () in
   let queue = Queue.create () in
   let enqueue f = Queue.add f queue in
   let run_next () =
@@ -24,15 +26,19 @@ let run main =
       run_next ()
     | effect (Fork f), k ->
       enqueue (Effect.Deep.continue k);
-      spawn f
+      spawn (fun () -> f terminator)
     | effect (Trigger.Await t), k ->
-      let resume t =
+      (* Attach the trigger to the terminator when blocking *)
+      let attached = Femtos_sync.Terminator.attach terminator t in
+      let resume trigger =
         let open Effect.Deep in
-        match Trigger.status t with
+        (* Detach the trigger when waking up *)
+        if attached then ignore (Femtos_sync.Terminator.detach terminator trigger);
+        match Trigger.status trigger with
         | `Signalled -> enqueue (fun () -> continue k None)
         | `Cancelled (exn, bt) -> enqueue (fun () -> discontinue_with_backtrace k exn bt)
       in
       if Trigger.on_signal t resume then run_next ()
       else resume t
   in
-  spawn main
+  spawn (fun () -> main terminator)

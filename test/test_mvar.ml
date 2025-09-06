@@ -56,19 +56,19 @@ let test_mvar_multiple_operations () =
 let test_mvar_blocking_operations () =
   Printf.printf "Testing MVar blocking operations with FIFO scheduler...\n" ;
 
-  let main () =
+  let main _terminator =
     let mvar = Sync.Mvar.create () in
     let results = ref [] in
 
     (* Start a consumer that will block on empty MVar *)
-    Femtos_mux.Fifo.fork (fun () ->
+    Femtos_mux.Fifo.fork (fun _terminator ->
         Printf.printf "Consumer: Attempting to take from empty MVar...\n" ;
         let value = Sync.Mvar.take mvar in
         Printf.printf "Consumer: Successfully took value %d\n" value ;
         results := value :: !results) ;
 
     (* Start a producer that will provide a value *)
-    Femtos_mux.Fifo.fork (fun () ->
+    Femtos_mux.Fifo.fork (fun _terminator ->
         Printf.printf "Producer: Yielding to let consumer start...\n" ;
         Femtos_mux.Fifo.yield () ;
         Printf.printf "Producer: Putting value 555 into MVar\n" ;
@@ -76,7 +76,7 @@ let test_mvar_blocking_operations () =
         Printf.printf "Producer: Value put successfully\n") ;
 
     (* Start another producer that will block on full MVar *)
-    Femtos_mux.Fifo.fork (fun () ->
+    Femtos_mux.Fifo.fork (fun _terminator ->
         Printf.printf
           "Producer2: Yielding to let first operations complete...\n" ;
         Femtos_mux.Fifo.yield () ;
@@ -86,7 +86,7 @@ let test_mvar_blocking_operations () =
         Printf.printf "Producer2: Value put successfully\n") ;
 
     (* Another consumer *)
-    Femtos_mux.Fifo.fork (fun () ->
+    Femtos_mux.Fifo.fork (fun _terminator ->
         Printf.printf "Consumer2: Yielding to let producers work...\n" ;
         Femtos_mux.Fifo.yield () ;
         Femtos_mux.Fifo.yield () ;

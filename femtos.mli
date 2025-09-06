@@ -89,7 +89,7 @@ module Mux : sig
 
         Note: This is a cooperative operation - the current fiber continues
         execution immediately after forking. *)
-    val fork : (unit -> unit) -> unit
+    val fork : (Sync.Terminator.t -> unit) -> unit
 
     (** [yield ()] voluntarily gives up control to allow other fibers to run.
         The current fiber is moved to the end of the run queue and will be
@@ -112,6 +112,6 @@ module Mux : sig
         allowing other fibers to continue execution.
 
         @param main The initial function to execute *)
-    val run : (unit -> unit) -> unit
+    val run : (Sync.Terminator.t -> unit) -> unit
   end
 end
