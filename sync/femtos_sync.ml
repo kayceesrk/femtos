@@ -2,3 +2,4 @@
 
 module Ivar = Ivar
 module Mvar = Mvar
+module Terminator = Terminator

@@ -26,10 +26,8 @@ type _ Effect.t += Await : t -> (exn * Printexc.raw_backtrace) option Effect.t
 
 (** {1 Scheduler interface}
 
-   This interface provides the necessary functions for the scheduler to interact
-   with triggers and manage their lifecycle.
-
-*)
+    This interface provides the necessary functions for the scheduler to
+    interact with triggers and manage their lifecycle. *)
 
 (** Register a callback to be called when the trigger is signaled. Is called by
     the handler of [Await] i.e., the scheduler. Returns [true] if the callback
@@ -37,4 +35,4 @@ type _ Effect.t += Await : t -> (exn * Printexc.raw_backtrace) option Effect.t
 val on_signal : t -> (t -> unit) -> bool
 
 (** Get the current status of the trigger. *)
-val status : t -> [`Signalled | `Cancelled of exn * Printexc.raw_backtrace]
+val status : t -> [ `Signalled | `Cancelled of exn * Printexc.raw_backtrace ]

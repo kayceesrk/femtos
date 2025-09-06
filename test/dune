@@ -13,3 +13,7 @@
 (test
  (name test_scheduler_integration)
  (libraries femtos))
+
+(test
+ (name test_terminator)
+ (libraries femtos))
