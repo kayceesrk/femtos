@@ -1,4 +1,4 @@
-open Femtos
+open Femtos_core
 
 let test_trigger_state_transitions () =
   let trigger = Trigger.create () in
@@ -6,7 +6,7 @@ let test_trigger_state_transitions () =
   (* Test Initialized -> Waiting transition *)
   let callback_called = ref false in
   let was_registered =
-    Trigger.on_signal trigger (fun () -> callback_called := true)
+    Trigger.on_signal trigger (fun _ -> callback_called := true)
   in
   assert was_registered ;
   (* Should return true when successfully registered *)
@@ -15,7 +15,7 @@ let test_trigger_state_transitions () =
   (* Callback shouldn't be called yet *)
 
   (* Test Waiting -> Signaled transition *)
-  Trigger.signal trigger ;
+  Trigger.signal trigger |> ignore ;
   assert !callback_called ;
 
   (* Callback should now be called *)
@@ -23,7 +23,7 @@ let test_trigger_state_transitions () =
   (* Test that on_signal returns false when already signaled *)
   let callback_called2 = ref false in
   let was_registered2 =
-    Trigger.on_signal trigger (fun () -> callback_called2 := true)
+    Trigger.on_signal trigger (fun _ -> callback_called2 := true)
   in
   assert (not was_registered2) ;
   (* Should return false since already signaled *)
@@ -36,12 +36,12 @@ let test_trigger_direct_signal () =
   let trigger = Trigger.create () in
 
   (* Test Initialized -> Signaled transition (no callback registered) *)
-  Trigger.signal trigger ;
+  Trigger.signal trigger |> ignore ;
 
   (* Trying to register callback after signaling should return false *)
   let callback_called = ref false in
   let was_registered =
-    Trigger.on_signal trigger (fun () -> callback_called := true)
+    Trigger.on_signal trigger (fun _ -> callback_called := true)
   in
   assert (not was_registered) ;
   (* Should return false *)
@@ -53,24 +53,24 @@ let test_trigger_direct_signal () =
 let test_trigger_multiple_signals () =
   let trigger = Trigger.create () in
   let call_count = ref 0 in
-  let was_registered = Trigger.on_signal trigger (fun () -> incr call_count) in
+  let was_registered = Trigger.on_signal trigger (fun _ -> incr call_count) in
   assert was_registered ;
 
   (* Multiple signals should only call callback once *)
-  Trigger.signal trigger ;
-  Trigger.signal trigger ;
-  Trigger.signal trigger ;
+  Trigger.signal trigger |> ignore ;
+  Trigger.signal trigger |> ignore ;
+  Trigger.signal trigger |> ignore ;
   assert (!call_count = 1) ;
 
   Printf.printf "Multiple signals test passed\n"
 
 let test_trigger_double_wait_error () =
   let trigger = Trigger.create () in
-  let _ = Trigger.on_signal trigger (fun () -> ()) in
+  let _ = Trigger.on_signal trigger (fun _ -> ()) in
 
   (* Trying to register a second callback should fail *)
   try
-    let _ = Trigger.on_signal trigger (fun () -> ()) in
+    let _ = Trigger.on_signal trigger (fun _ -> ()) in
     assert false (* Should not reach here *)
   with
   | Failure msg when String.equal msg "Trigger.on_signal: already waiting" ->

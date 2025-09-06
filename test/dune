@@ -1,11 +1,11 @@
 (test
  (name test_femtos)
- (libraries femtos))
+ (libraries femtos_core))
 
 (test
  (name test_ivar)
- (libraries sync femtos))
+ (libraries femtos_sync))
 
 (test
  (name test_mvar)
- (libraries sync femtos))
+ (libraries femtos_sync femtos_core))

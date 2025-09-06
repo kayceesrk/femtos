@@ -1,4 +1,0 @@
-(executable
- (public_name femtos)
- (name main)
- (libraries femtos))

@@ -1,6 +1,6 @@
 (** Promise implementation using Trigger *)
 
-open Femtos
+open Femtos_core
 
 type 'a state = Unfilled of Trigger.t list | Filled of 'a
 type 'a t = 'a state Atomic.t
@@ -12,10 +12,10 @@ let rec try_fill promise value =
   match old_state with
   | Filled _ -> false
   | Unfilled trigger ->
-    if Atomic.compare_and_set promise old_state (Filled value) then begin
-      List.iter Trigger.signal trigger;
-      true
-    end else
+    if Atomic.compare_and_set promise old_state (Filled value) then (
+      List.iter (fun trigger -> Trigger.signal trigger |> ignore) trigger ;
+      true)
+    else
       (* If CAS failed, state must have changed to Filled by another thread *)
       try_fill promise value
 
@@ -31,6 +31,6 @@ let rec read promise =
       match Effect.perform (Trigger.Await trigger) with
       | None -> read promise
       | Some (exn, backtrace) ->
-        remove_trigger ();
+        remove_trigger () ;
         Printexc.raise_with_backtrace exn backtrace)
     else read promise

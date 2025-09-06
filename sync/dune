@@ -1,4 +1,4 @@
 (library
- (name sync)
- (libraries femtos)
- (modules sync ivar mvar))
+ (name femtos_sync)
+ (libraries femtos_core)
+ (modules femtos_sync ivar mvar))

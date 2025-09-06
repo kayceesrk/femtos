@@ -21,6 +21,7 @@
  (description "A longer description")
  (depends ocaml dune)
  (tags
-  ("add topics" "to describe" your project)))
+  ("add topics" "to describe" your project))
+ (allow_empty))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
