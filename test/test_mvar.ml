@@ -41,14 +41,15 @@ let test_mvar_multiple_operations () =
   let mvar = Sync.Mvar.create () in
 
   (* Sequence of put/take operations *)
-  let values = [1; 2; 3; 4; 5] in
+  let values = [ 1; 2; 3; 4; 5 ] in
 
-  List.iter (fun v ->
-    Sync.Mvar.put mvar v ;
-    let taken = Sync.Mvar.take mvar in
-    assert (taken = v) ;
-    Printf.printf "Put and took value: %d\n" v
-  ) values ;
+  List.iter
+    (fun v ->
+      Sync.Mvar.put mvar v ;
+      let taken = Sync.Mvar.take mvar in
+      assert (taken = v) ;
+      Printf.printf "Put and took value: %d\n" v)
+    values ;
 
   Printf.printf "MVar multiple operations test passed\n"
 

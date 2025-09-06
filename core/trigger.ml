@@ -32,7 +32,8 @@ type _ Effect.t += Await : t -> (exn * Printexc.raw_backtrace) option Effect.t
 
 let rec on_signal trigger callback =
   match Atomic.get trigger with
-  | Signaled | Cancelled _ -> false (* Already signaled, callback will not be called *)
+  | Signaled | Cancelled _ ->
+    false (* Already signaled, callback will not be called *)
   | Waiting _ ->
     failwith "Trigger.on_signal: already waiting"
     (* Already has a waiter, can't add another *)

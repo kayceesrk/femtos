@@ -19,7 +19,15 @@ let rec try_fill promise value =
       (* If CAS failed, state must have changed to Filled by another thread *)
       try_fill promise value
 
-let remove_trigger () = ()
+(* TODO: Naive O(n) implementation. Make it amortised O(1). *)
+let rec remove_trigger promise trigger =
+  let old_state = Atomic.get promise in
+  match old_state with
+  | Unfilled triggers ->
+    let new_triggers = List.filter (fun t -> t != trigger) triggers in
+    if Atomic.compare_and_set promise old_state (Unfilled new_triggers) then ()
+    else remove_trigger promise trigger
+  | Filled _ -> ()
 
 let rec read promise =
   match Atomic.get promise with
@@ -31,6 +39,6 @@ let rec read promise =
       match Effect.perform (Trigger.Await trigger) with
       | None -> read promise
       | Some (exn, backtrace) ->
-        remove_trigger () ;
+        remove_trigger promise trigger ;
         Printexc.raise_with_backtrace exn backtrace)
     else read promise

@@ -34,17 +34,17 @@ let rec put mvar v =
       if Atomic.compare_and_set mvar before after then () else put mvar v
     | (hole, trigger) :: tl ->
       let after = Empty { takers = tl } in
-      if Atomic.compare_and_set mvar before after then begin
+      if Atomic.compare_and_set mvar before after then (
         (* Matched with a taker *)
-        hole := v ; (* Give the taker the value *)
-        if Trigger.signal trigger then begin
+        hole := v ;
+        (* Give the taker the value *)
+        if Trigger.signal trigger then
           (* Taker successfully signaled *)
           ()
-        end else begin
+        else
           (* Taker must have been cancelled. Try again. *)
-          put mvar v
-        end
-      end else
+          put mvar v)
+      else
         (* CAS failed, try again! *)
         put mvar v)
 
@@ -55,22 +55,21 @@ let rec take mvar =
     let hole = ref (Obj.magic ()) in
     let trigger = Trigger.create () in
     let after = Empty { takers = (hole, trigger) :: takers } in
-    if Atomic.compare_and_set mvar before after then
+    if Atomic.compare_and_set mvar before after then (
       match Effect.perform (Trigger.Await trigger) with
       | None -> !hole
       | Some (exn, bt) ->
         remove_trigger () ;
-        Printexc.raise_with_backtrace exn bt
+        Printexc.raise_with_backtrace exn bt)
     else take mvar
   | Full { value; putters } -> (
     match putters with
     | [] ->
       let after = Empty { takers = [] } in
-      if Atomic.compare_and_set mvar before after then value
-      else take mvar
+      if Atomic.compare_and_set mvar before after then value else take mvar
     | (v, trigger) :: tl ->
       let after = Full { value = v; putters = tl } in
-      if Atomic.compare_and_set mvar before after then begin
+      if Atomic.compare_and_set mvar before after then
         (* Matched with a putter *)
         if Trigger.signal trigger then
           (* Putter successfully signaled *)
@@ -78,6 +77,6 @@ let rec take mvar =
         else
           (* Putter must have been cancelled. Try again. *)
           take mvar
-      end else
+      else
         (* CAS failed, try again! *)
         take mvar)
