@@ -29,3 +29,7 @@
 (test
  (name test_flock)
  (libraries femtos femtos_mux))
+
+(test
+ (name test_flock_cancellation)
+ (libraries femtos femtos_mux unix))

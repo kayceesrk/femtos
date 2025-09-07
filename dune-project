@@ -5,22 +5,22 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github kayceesrk/femtos))
 
-(authors "Author Name <author@example.com>")
+(authors "KC Sivaramakrishnan <sk826@cl.cam.ac.uk>")
 
-(maintainers "Maintainer Name <maintainer@example.com>")
+(maintainers "KC Sivaramakrishnan <sk826@cl.cam.ac.uk>")
 
-(license LICENSE)
+(license MIT)
 
-(documentation https://url/to/documentation)
+(documentation https://kayceesrk.github.io/femtos)
 
 (package
  (name femtos)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml dune)
+ (synopsis "Lightweight structured concurrency library for OCaml")
+ (description "Femtos provides structured concurrency primitives for OCaml 5.x including triggers, synchronization variables (Ivar, Mvar), terminators, and schedulers (FIFO, Flock). Built on OCaml's effect handlers for efficient cooperative multitasking and structured concurrency patterns.")
+ (depends ocaml dune (odoc :with-doc))
  (tags
-  ("add topics" "to describe" your project)))
+  ("concurrency" "structured-concurrency" "effects" "synchronization" "schedulers" "multicore")))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

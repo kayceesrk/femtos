@@ -53,67 +53,40 @@ let finish f =
   let old_scope = !current_scope in
   current_scope := Some new_scope;
 
+  let restore_scope () = current_scope := old_scope in
 
-  let result =
-    try
-      Effect.Deep.match_with f ()
-        { retc = (fun result ->
-            (* Wait for all tasks *)
-            while new_scope.active_tasks > 0 do
-              (* Check for exceptions before each yield *)
-              match new_scope.exception_raised with
-              | Some exn ->
-                  let backtrace = Printexc.get_raw_backtrace () in
-                  Femtos_sync.Terminator.terminate new_scope.terminator exn backtrace;
-                  raise exn
-              | None ->
-                  (* Yield to let other tasks run *)
-                  Effect.perform Yield;
-                  (* Check again after yield in case an exception was raised *)
-                  match new_scope.exception_raised with
-                  | Some exn ->
-                      let backtrace = Printexc.get_raw_backtrace () in
-                      Femtos_sync.Terminator.terminate new_scope.terminator exn backtrace;
-                      raise exn
-                  | None -> ()
-            done;
+  try
+    let check_and_raise_exception () =
+      match new_scope.exception_raised with
+      | Some exn ->
+          let backtrace = Printexc.get_raw_backtrace () in
+          Femtos_sync.Terminator.terminate new_scope.terminator exn backtrace;
+          raise exn
+      | None -> ()
+    in
 
-            (* Check for exceptions one more time after all tasks complete *)
-            match new_scope.exception_raised with
-            | Some exn -> raise exn
-            | None -> result
-          );
-          exnc = (fun exn ->
-            (* On exception, terminate the scope and propagate *)
-            let backtrace = Printexc.get_raw_backtrace () in
-            Femtos_sync.Terminator.terminate new_scope.terminator exn backtrace;
-            raise exn
-          );
-          effc = (fun (type a) (eff : a Effect.t) : ((a, _) Effect.Deep.continuation -> _) option ->
-            match eff with
-            | Async _ ->
-                (* Just forward the effect to scheduler without tracking here *)
-                None
-            | _ ->
-                (* Forward all other effects to parent handler (scheduler) *)
-                None
-          )
-        }
-    with
-    | exn ->
-        (* Restore scope and re-raise *)
-        current_scope := old_scope;
-        raise exn
-  in
+    let result = f () in
+    (* Wait for all tasks *)
+    while new_scope.active_tasks > 0 do
+      check_and_raise_exception ();
+      Effect.perform Yield;
+    done;
 
-  (* Restore previous scope *)
-  current_scope := old_scope;
-  result
+    (* Final exception check after all tasks complete *)
+    check_and_raise_exception ();
+    restore_scope ();
+    result
+  with
+  | exn ->
+      restore_scope ();
+      raise exn
 
 let run f =
   (* Reset scope stack *)
   let old_scope = !current_scope in
   current_scope := None;
+
+  let restore_scope () = current_scope := old_scope in
 
   try
     (* Implement our own self-contained scheduler *)
@@ -154,26 +127,18 @@ let run f =
 
               (* Create the task with cleanup *)
               let task_fiber () =
-                (* Set up terminator trigger for this task *)
-                let trigger = Trigger.create () in
-                let attached = Femtos_sync.Terminator.attach scope.terminator trigger in
-
-                let cleanup_and_decrement () =
-                  if attached then ignore (Femtos_sync.Terminator.detach scope.terminator trigger);
+                let cleanup () =
                   scope.active_tasks <- scope.active_tasks - 1;
                 in
 
-                try
-                  (* Execute the task *)
-                  task ();
-                  cleanup_and_decrement ();
-                with
+                (try task () with
                 | exn ->
                     (* Task failed - record exception and terminate scope *)
-                    cleanup_and_decrement ();
                     scope.exception_raised <- Some exn;
                     let backtrace = Printexc.get_raw_backtrace () in
                     Femtos_sync.Terminator.terminate scope.terminator exn backtrace;
+                    raise exn);
+                cleanup ()
               in
 
               (* Enqueue the task first *)
@@ -201,27 +166,27 @@ let run f =
       } in
       current_scope := Some root_scope;
 
-      try
-        let result = f () in
-
-        (* Wait for any remaining tasks in root scope *)
-        while root_scope.active_tasks > 0 do
-          match root_scope.exception_raised with
-          | Some exn -> raise exn
-          | None ->
-              Effect.perform Yield;
-              (* Check if scheduler captured an exception *)
-              match !exception_ref with
-              | Some exn -> raise exn
-              | None -> ()
-        done;
-
+      let check_exceptions () =
         match root_scope.exception_raised with
         | Some exn -> raise exn
         | None ->
             match !exception_ref with
             | Some exn -> raise exn
-            | None -> result_ref := Some result
+            | None -> ()
+      in
+
+      try
+        let result = f () in
+
+        (* Wait for any remaining tasks in root scope *)
+        while root_scope.active_tasks > 0 do
+          check_exceptions ();
+          Effect.perform Yield;
+          check_exceptions ();
+        done;
+
+        check_exceptions ();
+        result_ref := Some result
       with
       | exn ->
           result_ref := None;
@@ -235,7 +200,7 @@ let run f =
       run_next ()
     done;
 
-    current_scope := old_scope;
+    restore_scope ();
 
     match (!result_ref, !exception_ref) with
     | (Some result, None) -> result
@@ -244,5 +209,5 @@ let run f =
     | (Some _, Some exn) -> raise exn (* Exception takes precedence *)
   with
   | exn ->
-      current_scope := old_scope;
+      restore_scope ();
       raise exn

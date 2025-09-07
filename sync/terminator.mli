@@ -1,3 +1,26 @@
+(** Multicore-safe terminators for structured concurrency
+
+    A Terminator provides a way to coordinate cancellation across multiple
+    triggers and tasks. It allows attaching triggers that will all be cancelled
+    when the terminator is terminated. This is essential for implementing
+    structured concurrency where terminating a scope should cancel all
+    associated tasks.
+
+    {v
+    Usage Pattern:
+
+    1. Create a terminator for a scope
+    2. Attach triggers from tasks in that scope
+    3. When scope terminates, call terminate() to cancel all attached triggers
+    4. Tasks waiting on those triggers receive cancellation exceptions
+
+    Benefits:
+    - Ensures no tasks are left running when scopes terminate
+    - Provides clean cancellation propagation
+    - Multicore-safe coordination
+    v} *)
+
+(** The type of a terminator *)
 type t
 
 (** Create a terminator *)

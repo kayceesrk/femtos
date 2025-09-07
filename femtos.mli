@@ -1,7 +1,41 @@
-(** Femtos - A lightweight synchronization library for OCaml
+(** Femtos - Lightweight structured concurrency library for OCaml
 
-    This library provides structured concurrency primitives for OCaml, including
-    triggers for signaling and synchronization variables. *)
+    Femtos provides structured concurrency primitives for OCaml 5.x, built on
+    effect handlers for efficient cooperative multitasking. The library includes:
+
+    - {!Trigger}: Low-level signaling mechanism
+    - {!Sync}: High-level synchronization primitives (Ivar, Mvar, Terminator)
+    - {!Mux}: Schedulers and multiplexers (FIFO, Flock)
+
+    {1 Quick Start}
+
+    For structured concurrency with automatic cleanup:
+    {[
+      open Femtos
+
+      let main () =
+        Mux.Flock.finish (fun () ->
+          Mux.Flock.async (fun () -> print_endline "Task 1");
+          Mux.Flock.async (fun () -> print_endline "Task 2");
+          "All tasks completed"
+        )
+
+      let () = Mux.Flock.run main |> print_endline
+    ]}
+
+    For cooperative multitasking:
+    {[
+      open Femtos
+
+      let main terminator =
+        Mux.Fifo.fork (fun _ -> print_endline "Child fiber");
+        print_endline "Main fiber";
+        Mux.Fifo.yield ();
+        print_endline "Main continues"
+
+      let () = Mux.Fifo.run main
+    ]}
+*)
 
 (** Low-level trigger mechanism for synchronization *)
 module Trigger : sig

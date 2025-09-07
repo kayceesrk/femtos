@@ -1,22 +1,21 @@
-(** Sync - Synchronization primitives for femtos *)
+(** Synchronization primitives for Femtos
 
+    This module provides high-level synchronization primitives built on top of
+    the core trigger mechanism. These primitives include single-assignment
+    variables (Ivar), mutable variables with blocking semantics (Mvar), and
+    terminators for structured concurrency. *)
+
+(** Single-assignment variables (write-once promises) *)
 module Ivar : sig
-  type 'a t
-
-  val create : unit -> 'a t
-  val try_fill : 'a t -> 'a -> bool
-  val read : 'a t -> 'a
+  include module type of Ivar
 end
 
+(** Mutable variables with blocking semantics *)
 module Mvar : sig
-  type 'a t
-
-  val create : unit -> 'a t
-  val create_full : 'a -> 'a t
-  val put : 'a t -> 'a -> unit
-  val take : 'a t -> 'a
+  include module type of Mvar
 end
 
+(** Multicore-safe terminators for structured concurrency *)
 module Terminator : sig
   type t
 
