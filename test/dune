@@ -25,3 +25,7 @@
 (test
  (name test_multicore_domains)
  (libraries femtos))
+
+(test
+ (name test_flock)
+ (libraries femtos femtos_mux))

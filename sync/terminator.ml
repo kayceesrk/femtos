@@ -29,6 +29,10 @@ let terminate terminator exn bt =
   in
   loop ()
 
+let is_terminated (t : t) : bool = match Atomic.get t with
+| Terminated _ -> true
+| _ -> false
+
 let attach terminator trigger =
   let rec loop () =
     let current_state = Atomic.get terminator in

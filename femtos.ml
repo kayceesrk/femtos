@@ -10,4 +10,5 @@ end
 
 module Mux = struct
   module Fifo = Femtos_mux.Fifo
+  module Flock = Femtos_mux.Flock
 end
