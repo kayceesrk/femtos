@@ -15,6 +15,11 @@ module Mvar : sig
   include module type of Mvar
 end
 
+(** Mutual exclusion locks *)
+module Mutex : sig
+  include module type of Mutex
+end
+
 (** Multicore-safe terminators for structured concurrency *)
 module Terminator : sig
   type t

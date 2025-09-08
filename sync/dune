@@ -2,4 +2,4 @@
  (public_name femtos.sync)
  (name femtos_sync)
  (libraries femtos_core)
- (modules femtos_sync ivar mvar terminator))
+ (modules femtos_sync ivar mvar mutex terminator))

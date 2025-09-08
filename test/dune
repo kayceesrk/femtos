@@ -11,6 +11,10 @@
  (libraries femtos femtos_mux))
 
 (test
+ (name test_mutex)
+ (libraries femtos femtos_mux))
+
+(test
  (name test_scheduler_integration)
  (libraries femtos))
 

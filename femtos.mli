@@ -70,6 +70,17 @@ module Sync : sig
     val take : 'a t -> 'a
   end
 
+  (** Mutual exclusion locks *)
+  module Mutex : sig
+    type t
+
+    val create : unit -> t
+    val lock : t -> unit
+    val unlock : t -> unit
+    val try_lock : t -> bool
+    val is_locked : t -> bool
+  end
+
   (** Multicore-safe terminators for structured concurrency *)
   module Terminator : sig
     type t
