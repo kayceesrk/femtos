@@ -3,12 +3,12 @@
 [![OCaml](https://img.shields.io/badge/OCaml-5.x-orange.svg)](https://ocaml.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Femtos** is an experimental structured concurrency library for OCaml 5.x, designed  
+**Femtos** is an experimental structured concurrency library for OCaml 5.x, designed
 to explore the semantics of composable concurrency using effect handlers.
 
-> **⚠️ Experimental Research Library**  
-> Femtos is a research project for understanding structured concurrency semantics and is  
-> **not intended for production use**. For production applications, please use these mature  
+> **⚠️ Experimental Research Library**
+> Femtos is a research project for understanding structured concurrency semantics and is
+> **not intended for production use**. For production applications, please use these mature
 > alternatives:
 >
 > - **[Picos](https://github.com/ocaml-multicore/picos)** - Systematic approach to interoperable concurrency
@@ -41,9 +41,9 @@ dune build
 dune install
 ```
 
-> **Note**: Femtos is experimental software for research purposes. For production  
-> applications, we recommend [Picos](https://github.com/ocaml-multicore/picos),  
-> [JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions),  
+> **Note**: Femtos is experimental software for research purposes. For production
+> applications, we recommend [Picos](https://github.com/ocaml-multicore/picos),
+> [JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions),
 > or [Eio](https://github.com/ocaml-multicore/eio).
 
 ### Structured Concurrency Example
@@ -257,55 +257,10 @@ dune exec test/test_femtos.exe
 dune exec test/test_flock_cancellation.exe
 ```
 
-## Design Philosophy
-
-### Design Principles
-
-Femtos implements [structured concurrency](https://en.wikipedia.org/wiki/Structured_concurrency) principles:
-
-1. **Hierarchical Task Management** - Tasks are organized in scopes
-2. **Automatic Resource Cleanup** - Resources are cleaned up when scopes end
-3. **Exception Safety** - Failures propagate and terminate related tasks
-4. **No Orphaned Tasks** - All spawned tasks complete before scope ends
-
-### Why Effect Handlers?
-
-OCaml 5.x's effect handlers provide:
-
-- **Zero-allocation** cooperative switching in many cases
-- **Composable** synchronization primitives
-- **Type-safe** concurrency without callback hell
-- **Efficient** scheduling with minimal runtime overhead
-
-## Comparison with Other Libraries
-
-| Feature | Femtos | Picos | Await | Lwt | Async | Eio |
-|---------|--------|-------|-------|-----|-------|-----|
-| Structured Concurrency | 🧪 | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Effect Handlers | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Production Ready | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| IO Integration | ❌ | ⚠️ | ✅ | ✅ | ✅ | ✅ |
-| Interoperability | ❌ | ✅ | ⚠️ | ⚠️ | ❌ | ⚠️ |
-
-**🧪 Femtos** is designed for:
-
-- **Research and experimentation** with structured concurrency semantics
-- Learning structured concurrency concepts through hands-on exploration
-- Understanding effect handler composition patterns
-- Academic study of concurrent programming models
-
-**🏭 For Production Use:**
-
-- **[Picos](https://github.com/ocaml-multicore/picos)** - Systematic approach to interoperable concurrency libraries
-- **[JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions)** -  
-  Industrial-strength structured concurrency
-- **[Eio](https://github.com/ocaml-multicore/eio)** - Full-featured effects-based I/O  
-  and structured concurrency
-
 ## Requirements
 
-- **OCaml 5.0+** (for effect handlers)
-- **Dune 3.0+** (for build system)
+- **OCaml 5.3+** (for effect handlers)
+- **dune 3.17+** (build system)
 
 ## Contributing
 
@@ -323,7 +278,7 @@ MIT License. See [LICENSE](LICENSE) file for details.
 
 ## Related Work
 
-- [Structured Concurrency](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/)  
+- [Structured Concurrency](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/)
   by Nathaniel J. Smith
 - [Eio](https://github.com/ocaml-multicore/eio) - OCaml structured concurrency with IO
 - [OCaml 5.0 Effects](https://v2.ocaml.org/manual/effects.html) - Official effect handlers documentation

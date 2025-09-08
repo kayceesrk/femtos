@@ -18,7 +18,7 @@ homepage: "https://github.com/kayceesrk/femtos"
 doc: "https://kayceesrk.github.io/femtos"
 bug-reports: "https://github.com/kayceesrk/femtos/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "5.3"}
   "dune" {>= "3.17"}
   "odoc" {with-doc}
 ]

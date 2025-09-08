@@ -19,7 +19,7 @@
  (name femtos)
  (synopsis "Experimental structured concurrency library for OCaml research")
  (description "Femtos is an experimental library for exploring structured concurrency semantics in OCaml 5.x. It provides triggers, synchronization variables (Ivar, Mvar), terminators, and schedulers (FIFO, Flock) built on effect handlers. For production use, consider Picos, JaneStreet Await, or Eio instead.")
- (depends ocaml dune (odoc :with-doc))
+ (depends (ocaml (>= "5.3")) dune (odoc :with-doc))
  (tags
   ("concurrency" "structured-concurrency" "effects" "synchronization" "schedulers" "multicore")))
 
