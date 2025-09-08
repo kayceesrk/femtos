@@ -19,10 +19,10 @@ let run main =
     match f () with
     | () -> run_next ()
     | exception e ->
-      Printf.eprintf "Fiber raised exception: %s\n" (Printexc.to_string e) ;
+      Printf.eprintf "Fiber error: %s\n%!" (Printexc.to_string e);
       run_next ()
     | effect Yield, k ->
-      enqueue (Effect.Deep.continue k) ;
+      enqueue (Effect.Deep.continue k);
       run_next ()
     | effect (Fork f), k ->
       enqueue (Effect.Deep.continue k);
@@ -44,7 +44,13 @@ let run main =
             (* Not terminated, return None for normal completion *)
             enqueue (fun () -> continue k None)
       in
-      if Trigger.on_signal t resume then run_next ()
-      else resume ()
+      if Trigger.on_signal t resume then
+        (* Callback registered, trigger not yet signaled *)
+        run_next ()
+      else (
+        (* Trigger already signaled, resume immediately *)
+        resume ();
+        run_next ()
+      )
   in
   spawn (fun () -> main terminator)
