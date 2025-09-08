@@ -46,8 +46,7 @@ module Trigger : sig
 
   type _ Effect.t += Await : t -> (exn * Printexc.raw_backtrace) option Effect.t
 
-  val on_signal : t -> (t -> unit) -> bool
-  val is_signalled : t -> bool
+  val on_signal : t -> (unit -> unit) -> bool
 end
 
 (** Synchronization primitives *)

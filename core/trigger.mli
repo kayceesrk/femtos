@@ -31,7 +31,4 @@ type _ Effect.t += Await : t -> (exn * Printexc.raw_backtrace) option Effect.t
 (** Register a callback to be called when the trigger is signaled. Is called by
     the handler of [Await] i.e., the scheduler. Returns [true] if the callback
     was successfully registered. *)
-val on_signal : t -> (t -> unit) -> bool
-
-(** Check if the trigger has been signaled. *)
-val is_signalled : t -> bool
+val on_signal : t -> (unit -> unit) -> bool

@@ -1,7 +1,7 @@
 type state =
   | Initialized
   | Signalled
-  | Waiting of (t -> unit)
+  | Waiting of (unit -> unit)
 
 and t = state Atomic.t
 
@@ -18,7 +18,7 @@ let rec set trigger v =
   | Signalled -> false (* Already signalled *)
   | Waiting callback ->
     if Atomic.compare_and_set trigger old_state v then (
-      callback trigger ;
+      callback () ;
       (* Successfully signalled and called callback *)
       true)
     else false (* CAS failed, but that's okay - someone else signalled *)
@@ -41,8 +41,3 @@ let rec on_signal trigger callback =
       Atomic.compare_and_set trigger Initialized (Waiting callback)
     then true (* Successfully registered as waiting *)
     else on_signal trigger callback (* Retry if state changed *)
-
-let is_signalled trigger =
-  match Atomic.get trigger with
-  | Signalled -> true
-  | Initialized | Waiting _ -> false

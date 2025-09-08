@@ -148,7 +148,7 @@ let run f =
               Effect.Deep.continue k ()
           )
       | effect (Trigger.Await t), k ->
-          let resume _trigger =
+          let resume () =
             let open Effect.Deep in
             (* Check if current scope was terminated while waiting *)
             match !current_scope with
@@ -165,7 +165,7 @@ let run f =
                     enqueue (fun () -> continue k None)
           in
           if Trigger.on_signal t resume then run_next ()
-          else resume t
+          else resume ()
     in
 
     let main () =

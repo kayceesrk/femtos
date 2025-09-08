@@ -84,7 +84,7 @@ let forward ~from_terminator ~to_terminator =
   let forward_trigger = Femtos_core.Trigger.create () in
 
   (* Set up callback to forward termination *)
-  let callback _trigger =
+  let callback () =
     (* When the forward trigger is signaled, check if from_terminator was terminated *)
     match get_termination from_terminator with
     | Some (exn, bt) ->

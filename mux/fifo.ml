@@ -30,10 +30,10 @@ let run main =
     | effect (Trigger.Await t), k ->
       (* Attach the trigger to the terminator when blocking *)
       let attached = Femtos_sync.Terminator.attach terminator t in
-      let resume trigger =
+      let resume () =
         let open Effect.Deep in
         (* Detach the trigger when waking up *)
-        if attached then ignore (Femtos_sync.Terminator.detach terminator trigger);
+        if attached then ignore (Femtos_sync.Terminator.detach terminator t);
 
         (* Check if terminator was terminated while waiting *)
         match Femtos_sync.Terminator.get_termination terminator with
@@ -45,6 +45,6 @@ let run main =
             enqueue (fun () -> continue k None)
       in
       if Trigger.on_signal t resume then run_next ()
-      else resume t
+      else resume ()
   in
   spawn (fun () -> main terminator)
