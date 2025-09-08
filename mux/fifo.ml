@@ -12,7 +12,19 @@ let run main =
   (* Use Saturn's lock-free multiproducer single consumer queue for multicore safety *)
   let queue = Saturn.Single_consumer_queue.create () in
   let blocked_count = Atomic.make 0 in  (* Track blocked threads atomically *)
-  let enqueue f = Saturn.Single_consumer_queue.push queue f in
+
+  (* Condition variable for blocking the scheduler when no work is available *)
+  let scheduler_mutex = Mutex.create () in
+  let scheduler_condition = Condition.create () in
+
+  let enqueue f =
+    Saturn.Single_consumer_queue.push queue f;
+    (* Wake up the scheduler if it's waiting *)
+    Mutex.lock scheduler_mutex;
+    Condition.signal scheduler_condition;
+    Mutex.unlock scheduler_mutex
+  in
+
   let rec run_next () =
     match Saturn.Single_consumer_queue.pop_opt queue with
     | Some f -> f ()
@@ -20,9 +32,19 @@ let run main =
         (* Queue is empty - check if we have blocked threads *)
         if Atomic.get blocked_count > 0 then (
           (* There are blocked threads that might be woken up by other domains.
-             Sleep briefly to allow cross-domain signals to enqueue work. *)
-          Unix.sleepf 0.0001;  (* Sleep for 0.1ms *)
-          run_next ()
+             Block on condition variable until work arrives. *)
+          Mutex.lock scheduler_mutex;
+          (* Double-check the queue after acquiring the mutex *)
+          (match Saturn.Single_consumer_queue.pop_opt queue with
+          | Some f ->
+              Mutex.unlock scheduler_mutex;
+              f ()
+          | None ->
+              (* Still no work - wait for signal *)
+              Condition.wait scheduler_condition scheduler_mutex;
+              Mutex.unlock scheduler_mutex;
+              run_next ()
+          )
         ) else (
           (* No runnable threads and no blocked threads - we can exit *)
           ()

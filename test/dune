@@ -73,3 +73,7 @@
 (test
  (name test_condition_multicore)
  (libraries femtos))
+
+(test
+ (name test_flock_multicore)
+ (libraries femtos unix))

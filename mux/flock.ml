@@ -92,13 +92,46 @@ let run f =
     (* Implement our own self-contained scheduler *)
     let exception_ref = ref None in
     let result_ref = ref None in
-    let queue = Queue.create () in
+    (* Use Saturn's lock-free multiproducer single consumer queue for multicore safety *)
+    let queue = Saturn.Single_consumer_queue.create () in
+    let blocked_count = Atomic.make 0 in  (* Track blocked threads atomically *)
 
-    let enqueue f = Queue.add f queue in
+    (* Condition variable for blocking the scheduler when no work is available *)
+    let scheduler_mutex = Mutex.create () in
+    let scheduler_condition = Condition.create () in
 
-    let run_next () =
-      if Queue.is_empty queue then ()
-      else (Queue.take queue) ()
+    let enqueue f =
+      Saturn.Single_consumer_queue.push queue f;
+      (* Wake up the scheduler if it's waiting *)
+      Mutex.lock scheduler_mutex;
+      Condition.signal scheduler_condition;
+      Mutex.unlock scheduler_mutex
+    in
+
+    let rec run_next () =
+      match Saturn.Single_consumer_queue.pop_opt queue with
+      | Some f -> f ()
+      | None ->
+          (* Queue is empty - check if we have blocked threads *)
+          if Atomic.get blocked_count > 0 then (
+            (* There are blocked threads that might be woken up by other domains.
+               Block on condition variable until work arrives. *)
+            Mutex.lock scheduler_mutex;
+            (* Double-check the queue after acquiring the mutex *)
+            (match Saturn.Single_consumer_queue.pop_opt queue with
+            | Some f ->
+                Mutex.unlock scheduler_mutex;
+                f ()
+            | None ->
+                (* Still no work - wait for signal *)
+                Condition.wait scheduler_condition scheduler_mutex;
+                Mutex.unlock scheduler_mutex;
+                run_next ()
+            )
+          ) else (
+            (* No runnable threads and no blocked threads - we can exit *)
+            ()
+          )
     in
 
     let spawn f =
@@ -150,6 +183,9 @@ let run f =
       | effect (Trigger.Await t), k ->
           let resume () =
             let open Effect.Deep in
+            (* Decrement blocked count atomically when resuming *)
+            Atomic.decr blocked_count;
+
             (* Check if current scope was terminated while waiting *)
             match !current_scope with
             | None ->
@@ -164,10 +200,11 @@ let run f =
                     (* Not terminated, return None for normal completion *)
                     enqueue (fun () -> continue k None)
           in
-          if Trigger.on_signal t resume then
-            (* Callback registered, trigger not yet signaled *)
+          if Trigger.on_signal t resume then (
+            (* Callback registered, trigger not yet signaled - increment blocked count *)
+            Atomic.incr blocked_count;
             run_next ()
-          else (
+          ) else (
             (* Trigger already signaled, resume immediately *)
             resume ();
             run_next ()
@@ -212,9 +249,31 @@ let run f =
     spawn main;
 
     (* Run the scheduler until all tasks complete *)
-    while not (Queue.is_empty queue) do
-      run_next ()
-    done;
+    let rec drain_queue () =
+      match Saturn.Single_consumer_queue.pop_opt queue with
+      | Some f ->
+          f ();
+          drain_queue ()
+      | None ->
+          (* Check if we still have blocked threads *)
+          if Atomic.get blocked_count > 0 then (
+            (* Block on condition variable until work arrives *)
+            Mutex.lock scheduler_mutex;
+            (* Double-check the queue after acquiring the mutex *)
+            (match Saturn.Single_consumer_queue.pop_opt queue with
+            | Some f ->
+                Mutex.unlock scheduler_mutex;
+                f ();
+                drain_queue ()
+            | None ->
+                (* Still no work - wait for signal *)
+                Condition.wait scheduler_condition scheduler_mutex;
+                Mutex.unlock scheduler_mutex;
+                drain_queue ()
+            )
+          )
+    in
+    drain_queue ();
 
     restore_scope ();
 
