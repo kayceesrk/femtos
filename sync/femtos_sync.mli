@@ -25,12 +25,9 @@ module Terminator : sig
   (** Terminate the terminator, signalling all attached triggers *)
   val terminate : t -> exn -> Printexc.raw_backtrace -> unit
 
-  (** Returns [true] if the terminator is terminated. *)
-  val is_terminated : t -> bool
-
-  (** Get the termination exception and backtrace if terminated.
+  (** Get the termination status and exception.
       Returns [None] if not terminated, [Some (exn, bt)] if terminated. *)
-  val get_termination_exn : t -> (exn * Printexc.raw_backtrace) option
+  val get_termination : t -> (exn * Printexc.raw_backtrace) option
 
   (** Attach a trigger to the terminator. When the terminator is terminated, all
       attached triggers are signalled. If the trigger is signalled, it is

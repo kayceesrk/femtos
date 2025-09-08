@@ -156,15 +156,13 @@ let run f =
                 (* No current scope, return None for normal completion *)
                 enqueue (fun () -> continue k None)
             | Some scope ->
-                if Femtos_sync.Terminator.is_terminated scope.terminator then
-                  (* Scope was terminated, return the cancellation exception *)
-                  (* TODO: Get the actual termination exception *)
-                  let exn = Failure "Scope was terminated" in
-                  let bt = Printexc.get_callstack 10 in
-                  enqueue (fun () -> continue k (Some (exn, bt)))
-                else
-                  (* Normal signaling, return None *)
-                  enqueue (fun () -> continue k None)
+                match Femtos_sync.Terminator.get_termination scope.terminator with
+                | Some (exn, bt) ->
+                    (* Scope was terminated, return the actual termination exception *)
+                    enqueue (fun () -> continue k (Some (exn, bt)))
+                | None ->
+                    (* Not terminated, return None for normal completion *)
+                    enqueue (fun () -> continue k None)
           in
           if Trigger.on_signal t resume then run_next ()
           else resume t

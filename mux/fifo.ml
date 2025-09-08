@@ -36,15 +36,13 @@ let run main =
         if attached then ignore (Femtos_sync.Terminator.detach terminator trigger);
 
         (* Check if terminator was terminated while waiting *)
-        if Femtos_sync.Terminator.is_terminated terminator then
-          (* Terminator was terminated, return the cancellation exception *)
-          (* TODO: Get the actual termination exception *)
-          let exn = Failure "Terminator was terminated" in
-          let bt = Printexc.get_callstack 10 in
-          enqueue (fun () -> continue k (Some (exn, bt)))
-        else
-          (* Normal signaling, return None *)
-          enqueue (fun () -> continue k None)
+        match Femtos_sync.Terminator.get_termination terminator with
+        | Some (exn, bt) ->
+            (* Terminator was terminated, return the actual termination exception *)
+            enqueue (fun () -> continue k (Some (exn, bt)))
+        | None ->
+            (* Not terminated, return None for normal completion *)
+            enqueue (fun () -> continue k None)
       in
       if Trigger.on_signal t resume then run_next ()
       else resume t

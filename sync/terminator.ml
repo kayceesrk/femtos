@@ -30,11 +30,7 @@ let terminate terminator exn bt =
   in
   loop ()
 
-let is_terminated (t : t) : bool = match Atomic.get t with
-| Terminated _ -> true
-| _ -> false
-
-let get_termination_exn (t : t) : (exn * Printexc.raw_backtrace) option =
+let get_termination (t : t) : (exn * Printexc.raw_backtrace) option =
   match Atomic.get t with
   | Terminated (exn, bt) -> Some (exn, bt)
   | Active _ -> None
@@ -90,7 +86,7 @@ let forward ~from_terminator ~to_terminator =
   (* Set up callback to forward termination *)
   let callback _trigger =
     (* When the forward trigger is signaled, check if from_terminator was terminated *)
-    match get_termination_exn from_terminator with
+    match get_termination from_terminator with
     | Some (exn, bt) ->
       (* Forward the termination *)
       terminate to_terminator exn bt
