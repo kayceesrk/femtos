@@ -22,8 +22,11 @@ let rec put mvar v =
     let after = Full { value; putters = (v, t) :: putters } in
     if Atomic.compare_and_set mvar before after then (
       match Effect.perform (Trigger.Await t) with
-      | None -> () (* put succeeded *)
+      | None ->
+        (* put succeeded *)
+        ()
       | Some (exn, bt) ->
+        (* Cancellation from scheduler *)
         remove_trigger () ;
         Printexc.raise_with_backtrace exn bt)
     else put mvar v
@@ -42,7 +45,7 @@ let rec put mvar v =
           (* Taker successfully signaled *)
           ()
         else
-          (* Taker must have been cancelled. Try again. *)
+          (* Taker must have been signalled or cancelled. Try again. *)
           put mvar v)
       else
         (* CAS failed, try again! *)
@@ -57,8 +60,11 @@ let rec take mvar =
     let after = Empty { takers = (hole, trigger) :: takers } in
     if Atomic.compare_and_set mvar before after then (
       match Effect.perform (Trigger.Await trigger) with
-      | None -> !hole
+      | None ->
+        (* Successfully awoken, return the value *)
+        !hole
       | Some (exn, bt) ->
+        (* Cancellation from scheduler *)
         remove_trigger () ;
         Printexc.raise_with_backtrace exn bt)
     else take mvar
@@ -75,7 +81,7 @@ let rec take mvar =
           (* Putter successfully signaled *)
           value
         else
-          (* Putter must have been cancelled. Try again. *)
+          (* Putter must have been signalled or cancelled. Try again. *)
           take mvar
       else
         (* CAS failed, try again! *)

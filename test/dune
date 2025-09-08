@@ -33,3 +33,7 @@
 (test
  (name test_flock_cancellation)
  (libraries femtos femtos_mux unix))
+
+(test
+ (name test_explicit_cancellation)
+ (libraries femtos femtos_mux))

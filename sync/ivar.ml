@@ -37,8 +37,11 @@ let rec read promise =
     let after = Unfilled (trigger :: l) in
     if Atomic.compare_and_set promise before after then (
       match Effect.perform (Trigger.Await trigger) with
-      | None -> read promise
-      | Some (exn, backtrace) ->
+      | None ->
+        (* Successfully awoken, read the value *)
+        read promise
+      | Some (exn, bt) ->
+        (* Cancellation from scheduler *)
         remove_trigger promise trigger ;
-        Printexc.raise_with_backtrace exn backtrace)
+        Printexc.raise_with_backtrace exn bt)
     else read promise

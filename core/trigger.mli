@@ -2,9 +2,11 @@
 
     A trigger is a synchronization primitive that can be used to signal that an
     event has occurred. The trigger is in one of 3 states -- [Initialized],
-    [Signaled], [Calcelled (exn, bt)] or [Waiting callback]. Trigger allows
-    exactly one callback to be registered exactly once. This callback is called
-    when the trigger is signaled. *)
+    [Signaled], or [Waiting callback]. Trigger allows exactly one callback to
+    be registered exactly once. This callback is called when the trigger is signaled.
+
+    Cancellation is handled by higher-level abstractions (schedulers) consulting
+    terminators rather than being built into the trigger itself. *)
 
 (** The type of a trigger. *)
 type t
@@ -12,16 +14,13 @@ type t
 (** Create a new trigger. *)
 val create : unit -> t
 
-(** Signal the trigger. If the trigger has already been signaled or canceled,
-    returns [false]. Otherwise, returns [true]. *)
+(** Signal the trigger. If the trigger has already been signaled, returns [false].
+    Otherwise, returns [true]. *)
 val signal : t -> bool
 
-(** Cancel the trigger with an exception and a backtrace. If the trigger has
-    already been signaled or canceled, returns [false]. Otherwise, returns
-    [true]. *)
-val cancel : t -> exn -> Printexc.raw_backtrace -> bool
-
-(** Wait for the trigger to be signaled. Returns the value passed to signal. *)
+(** Wait for the trigger to be signaled. The scheduler is responsible for
+    consulting terminators to determine if cancellation should occur.
+    Returns [None] if signaled normally, [Some (exn, bt)] if cancelled. *)
 type _ Effect.t += Await : t -> (exn * Printexc.raw_backtrace) option Effect.t
 
 (** {1 Scheduler interface}
@@ -34,5 +33,5 @@ type _ Effect.t += Await : t -> (exn * Printexc.raw_backtrace) option Effect.t
     was successfully registered. *)
 val on_signal : t -> (t -> unit) -> bool
 
-(** Get the current status of the trigger. *)
-val status : t -> [ `Signalled | `Cancelled of exn * Printexc.raw_backtrace ]
+(** Check if the trigger has been signaled. *)
+val is_signalled : t -> bool

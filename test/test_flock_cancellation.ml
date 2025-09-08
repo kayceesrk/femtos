@@ -362,7 +362,7 @@ let test_blocked_task_termination () =
       assert (not (List.mem "blocking_task_got_value" log));
       assert (not (List.mem "blocking_task_complete" log));
 
-      Printf.printf "✓ Blocked task properly terminated by scope termination (via Trigger cancellation)\n%!"
+      Printf.printf "✓ Blocked task properly terminated by scope termination (via Trigger signaling)\n%!"
   | exn ->
       let log = get_log () in
       Printf.printf "Unexpected exception: %s\n%!" (Printexc.to_string exn);

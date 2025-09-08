@@ -17,10 +17,11 @@ let terminate terminator exn bt =
       (* Try to atomically transition to terminated state *)
       if Atomic.compare_and_set terminator current_state (Terminated (exn, bt))
       then
-        (* Successfully terminated, now cancel all attached triggers *)
+        (* Successfully terminated, now signal all attached triggers *)
+        (* The schedulers will consult this terminator to determine the exception *)
         List.iter
           (fun trigger ->
-            let _ = Femtos_core.Trigger.cancel trigger exn bt in
+            let _ = Femtos_core.Trigger.signal trigger in
             ())
           triggers
       else
@@ -33,13 +34,19 @@ let is_terminated (t : t) : bool = match Atomic.get t with
 | Terminated _ -> true
 | _ -> false
 
+let get_termination_exn (t : t) : (exn * Printexc.raw_backtrace) option =
+  match Atomic.get t with
+  | Terminated (exn, bt) -> Some (exn, bt)
+  | Active _ -> None
+
 let attach terminator trigger =
   let rec loop () =
     let current_state = Atomic.get terminator in
     match current_state with
-    | Terminated (exn, bt) ->
-      (* Terminator already terminated, cancel the trigger and return false *)
-      let _ = Femtos_core.Trigger.cancel trigger exn bt in
+    | Terminated _ ->
+      (* Terminator already terminated, signal the trigger and return false *)
+      (* The scheduler will check the terminator status and handle the exception *)
+      let _ = Femtos_core.Trigger.signal trigger in
       false
     | Active triggers ->
       (* Check if trigger is already in the list to avoid duplicates *)
@@ -80,16 +87,17 @@ let forward ~from_terminator ~to_terminator =
   (* Create a trigger for forwarding *)
   let forward_trigger = Femtos_core.Trigger.create () in
 
-  (* Set up callback to forward signals/cancellations *)
+  (* Set up callback to forward termination *)
   let callback _trigger =
-    match Femtos_core.Trigger.status forward_trigger with
-    | `Signalled ->
-      (* Forward signal: terminate to_terminator with a forwarded exception *)
+    (* When the forward trigger is signaled, check if from_terminator was terminated *)
+    match get_termination_exn from_terminator with
+    | Some (exn, bt) ->
+      (* Forward the termination *)
+      terminate to_terminator exn bt
+    | None ->
+      (* This shouldn't happen in normal forwarding, but handle gracefully *)
       let forwarded_exn = Failure "Forwarded termination" in
       terminate to_terminator forwarded_exn (Printexc.get_callstack 10)
-    | `Cancelled (exn, bt) ->
-      (* Forward cancellation *)
-      terminate to_terminator exn bt
   in
 
   (* Register the callback first *)

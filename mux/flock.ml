@@ -148,11 +148,23 @@ let run f =
               Effect.Deep.continue k ()
           )
       | effect (Trigger.Await t), k ->
-          let resume trigger =
+          let resume _trigger =
             let open Effect.Deep in
-            match Trigger.status trigger with
-            | `Signalled -> enqueue (fun () -> continue k None)
-            | `Cancelled (exn, bt) -> enqueue (fun () -> discontinue_with_backtrace k exn bt)
+            (* Check if current scope was terminated while waiting *)
+            match !current_scope with
+            | None ->
+                (* No current scope, return None for normal completion *)
+                enqueue (fun () -> continue k None)
+            | Some scope ->
+                if Femtos_sync.Terminator.is_terminated scope.terminator then
+                  (* Scope was terminated, return the cancellation exception *)
+                  (* TODO: Get the actual termination exception *)
+                  let exn = Failure "Scope was terminated" in
+                  let bt = Printexc.get_callstack 10 in
+                  enqueue (fun () -> continue k (Some (exn, bt)))
+                else
+                  (* Normal signaling, return None *)
+                  enqueue (fun () -> continue k None)
           in
           if Trigger.on_signal t resume then run_next ()
           else resume t
