@@ -89,3 +89,14 @@ let unlock mutex =
           attempt ()
   in
   attempt ()
+
+let protect mutex f =
+  lock mutex;
+  try
+    let result = f () in
+    unlock mutex;
+    result
+  with
+  | exn ->
+    unlock mutex;
+    raise exn

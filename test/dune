@@ -15,6 +15,14 @@
  (libraries femtos femtos_mux))
 
 (test
+ (name test_mutex_protect)
+ (libraries femtos femtos_mux))
+
+(test
+ (name test_condition)
+ (libraries femtos femtos_mux))
+
+(test
  (name test_already_signaled)
  (libraries femtos femtos_mux))
 

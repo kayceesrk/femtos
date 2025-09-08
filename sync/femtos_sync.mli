@@ -20,6 +20,11 @@ module Mutex : sig
   include module type of Mutex
 end
 
+(** Condition variables for synchronization *)
+module Condition : sig
+  include module type of Condition
+end
+
 (** Multicore-safe terminators for structured concurrency *)
 module Terminator : sig
   type t

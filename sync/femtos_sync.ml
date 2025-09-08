@@ -3,4 +3,5 @@
 module Ivar = Ivar
 module Mvar = Mvar
 module Mutex = Mutex
+module Condition = Condition
 module Terminator = Terminator

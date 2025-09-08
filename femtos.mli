@@ -79,6 +79,17 @@ module Sync : sig
     val unlock : t -> unit
     val try_lock : t -> bool
     val is_locked : t -> bool
+    val protect : t -> (unit -> 'a) -> 'a
+  end
+
+  (** Condition variables for synchronization *)
+  module Condition : sig
+    type t
+
+    val create : unit -> t
+    val wait : t -> Mutex.t -> unit
+    val signal : t -> unit
+    val broadcast : t -> unit
   end
 
   (** Multicore-safe terminators for structured concurrency *)

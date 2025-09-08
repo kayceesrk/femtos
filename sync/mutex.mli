@@ -41,3 +41,11 @@ val try_lock : t -> bool
 (** Check if the mutex is currently locked.
     @return [true] if locked, [false] if unlocked. *)
 val is_locked : t -> bool
+
+(** [protect mutex f] acquires the mutex, executes [f ()], and releases the mutex.
+    The mutex is released even if [f] raises an exception.
+    @param mutex The mutex to acquire
+    @param f The function to execute while holding the mutex
+    @return The result of [f ()]
+    @raise any exception raised by [f] after ensuring mutex is released *)
+val protect : t -> (unit -> 'a) -> 'a
