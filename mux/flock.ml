@@ -164,8 +164,14 @@ let run f =
                     (* Not terminated, return None for normal completion *)
                     enqueue (fun () -> continue k None)
           in
-          if Trigger.on_signal t resume then run_next ()
-          else resume ()
+          if Trigger.on_signal t resume then
+            (* Callback registered, trigger not yet signaled *)
+            run_next ()
+          else (
+            (* Trigger already signaled, resume immediately *)
+            resume ();
+            run_next ()
+          )
     in
 
     let main () =

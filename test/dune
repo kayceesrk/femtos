@@ -14,7 +14,13 @@
  (name test_mutex)
  (libraries femtos femtos_mux))
 
+(test
+ (name test_already_signaled)
+ (libraries femtos femtos_mux))
 
+(test
+ (name test_control_flow)
+ (libraries femtos femtos_mux))
 
 (test
  (name test_scheduler_integration)
@@ -34,6 +40,10 @@
 
 (test
  (name test_flock)
+ (libraries femtos femtos_mux))
+
+(test
+ (name test_flock_already_signaled)
  (libraries femtos femtos_mux))
 
 (test
