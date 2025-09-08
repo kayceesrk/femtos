@@ -3,10 +3,14 @@
 [![OCaml](https://img.shields.io/badge/OCaml-5.x-orange.svg)](https://ocaml.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Femtos** is an experimental structured concurrency library for OCaml 5.x, designed to explore the semantics of composable concurrency using effect handlers.
+**Femtos** is an experimental structured concurrency library for OCaml 5.x, designed  
+to explore the semantics of composable concurrency using effect handlers.
 
-> **⚠️ Experimental Research Library**
-> Femtos is a research project for understanding structured concurrency semantics and is **not intended for production use**. For production applications, please use these mature alternatives:
+> **⚠️ Experimental Research Library**  
+> Femtos is a research project for understanding structured concurrency semantics and is  
+> **not intended for production use**. For production applications, please use these mature  
+> alternatives:
+>
 > - **[Picos](https://github.com/ocaml-multicore/picos)** - Systematic approach to interoperable concurrency
 > - **[JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions)** - Production-ready structured concurrency
 > - **[Eio](https://github.com/ocaml-multicore/eio)** - Full-featured effects-based I/O and concurrency
@@ -18,7 +22,9 @@
 🧵 **Multiple Schedulers**: FIFO cooperative scheduler and Flock structured scheduler
 🔒 **Synchronization Primitives**: Ivar (promises), Mvar (channels), and Terminators
 🛡️ **Exception Safety**: Proper exception propagation and resource cleanup
-🚀 **Lightweight**: Minimal overhead with efficient cooperative multitasking## Quick Start
+🚀 **Lightweight**: Minimal overhead with efficient cooperative multitasking
+
+## Quick Start
 
 ### Installation
 
@@ -35,7 +41,10 @@ dune build
 dune install
 ```
 
-> **Note**: Femtos is experimental software for research purposes. For production applications, we recommend [Picos](https://github.com/ocaml-multicore/picos), [JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions), or [Eio](https://github.com/ocaml-multicore/eio).
+> **Note**: Femtos is experimental software for research purposes. For production  
+> applications, we recommend [Picos](https://github.com/ocaml-multicore/picos),  
+> [JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions),  
+> or [Eio](https://github.com/ocaml-multicore/eio).
 
 ### Structured Concurrency Example
 
@@ -242,6 +251,7 @@ The repository includes comprehensive examples in the `test/` directory:
 - **`test_scheduler_integration.ml`** - Scheduler interoperability
 
 Run tests:
+
 ```bash
 dune exec test/test_femtos.exe
 dune exec test/test_flock_cancellation.exe
@@ -287,8 +297,10 @@ OCaml 5.x's effect handlers provide:
 **🏭 For Production Use:**
 
 - **[Picos](https://github.com/ocaml-multicore/picos)** - Systematic approach to interoperable concurrency libraries
-- **[JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions)** - Industrial-strength structured concurrency
-- **[Eio](https://github.com/ocaml-multicore/eio)** - Full-featured effects-based I/O and structured concurrency
+- **[JaneStreet Await](https://github.com/janestreet/await/tree/with-extensions)** -  
+  Industrial-strength structured concurrency
+- **[Eio](https://github.com/ocaml-multicore/eio)** - Full-featured effects-based I/O  
+  and structured concurrency
 
 ## Requirements
 
@@ -311,7 +323,8 @@ MIT License. See [LICENSE](LICENSE) file for details.
 
 ## Related Work
 
-- [Structured Concurrency](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/) by Nathaniel J. Smith
+- [Structured Concurrency](https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/)  
+  by Nathaniel J. Smith
 - [Eio](https://github.com/ocaml-multicore/eio) - OCaml structured concurrency with IO
 - [OCaml 5.0 Effects](https://v2.ocaml.org/manual/effects.html) - Official effect handlers documentation
 
