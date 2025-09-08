@@ -61,3 +61,15 @@
 (test
  (name test_explicit_cancellation)
  (libraries femtos femtos_mux))
+
+(test
+ (name test_cross_domain_trigger)
+ (libraries femtos unix))
+
+(test
+ (name test_mutex_multicore)
+ (libraries femtos))
+
+(test
+ (name test_condition_multicore)
+ (libraries femtos))

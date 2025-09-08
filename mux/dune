@@ -1,5 +1,5 @@
 (library
  (public_name femtos.mux)
  (name femtos_mux)
- (libraries femtos_core femtos_sync)
+ (libraries femtos_core femtos_sync saturn unix)
  (modules femtos_mux fifo flock))

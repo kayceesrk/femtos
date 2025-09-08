@@ -20,6 +20,7 @@ bug-reports: "https://github.com/kayceesrk/femtos/issues"
 depends: [
   "ocaml" {>= "5.3"}
   "dune" {>= "3.17"}
+  "saturn"
   "odoc" {with-doc}
 ]
 build: [
