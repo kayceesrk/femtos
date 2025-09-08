@@ -17,12 +17,12 @@ to explore the semantics of composable concurrency using effect handlers.
 
 ## Features
 
-🔄 **Structured Concurrency**: Hierarchical task management with automatic cleanup
-⚡ **Effect Handlers**: Built on OCaml 5.x's native effect system
-🧵 **Multiple Schedulers**: FIFO cooperative scheduler and Flock structured scheduler
-🔒 **Synchronization Primitives**: Ivar (promises), Mvar (channels), and Terminators
-🛡️ **Exception Safety**: Proper exception propagation and resource cleanup
-🚀 **Lightweight**: Minimal overhead with efficient cooperative multitasking
+- 🔄 **Structured Concurrency**: Hierarchical task management with automatic cleanup
+- ⚡ **Effect Handlers**: Built on OCaml 5.x's native effect system
+- 🧵 **Multiple Schedulers**: FIFO cooperative scheduler and Flock structured scheduler
+- 🔒 **Synchronization Primitives**: Ivar (promises), Mvar (channels), and Terminators
+- 🛡️ **Exception Safety**: Proper exception propagation and resource cleanup
+- 🚀 **Lightweight**: Minimal overhead with efficient cooperative multitasking
 
 ## Quick Start
 
