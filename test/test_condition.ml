@@ -155,6 +155,66 @@ let test_condition_producer_consumer () =
     Printf.printf "✓ Producer/consumer test passed - %d items processed\n%!" !consumed_count
   )
 
+let test_condition_cancellation_mutex_state () =
+  Printf.printf "=== Testing Condition cancellation maintains mutex state ===\n%!";
+
+  Mux.Fifo.run (fun terminator ->
+    let mutex = Sync.Mutex.create () in
+    let condition = Sync.Condition.create () in
+    let worker_exception = ref None in
+    let mutex_state_when_cancelled = ref false in
+
+    (* Worker that will be cancelled via terminator while waiting on condition *)
+    Mux.Fifo.fork (fun _ ->
+      try
+        Printf.printf "Worker: About to lock mutex and wait on condition\n%!";
+        Sync.Mutex.lock mutex;
+        Printf.printf "Worker: Mutex locked, about to wait on condition\n%!";
+
+        (* This should: unlock mutex, wait, then reacquire mutex before raising exception *)
+        Sync.Condition.wait condition mutex;
+
+        Printf.printf "Worker: This should never print (got unexpected signal)\n%!";
+        Sync.Mutex.unlock mutex;
+      with
+      | exn ->
+          Printf.printf "Worker: Caught exception: %s\n%!" (Printexc.to_string exn);
+          Printf.printf "Worker: Checking mutex state after exception...\n%!";
+          mutex_state_when_cancelled := Sync.Mutex.is_locked mutex;
+          Printf.printf "Worker: Mutex is locked: %b\n%!" !mutex_state_when_cancelled;
+
+          (* If mutex is locked, unlock it properly *)
+          if !mutex_state_when_cancelled then
+            Sync.Mutex.unlock mutex;
+
+          worker_exception := Some exn
+    );
+
+    (* Let worker start and block on condition *)
+    Mux.Fifo.yield ();
+
+    (* Now terminate the worker by terminating the terminator *)
+    Printf.printf "Terminator: About to terminate to cancel worker\n%!";
+    Sync.Terminator.terminate terminator (Failure "Worker cancelled") (Printexc.get_callstack 10);
+
+    (* Let worker handle the termination *)
+    Mux.Fifo.yield ();
+
+    (* Check results *)
+    match !worker_exception with
+    | None ->
+        Printf.printf "❌ FAIL: Worker should have been cancelled\n%!";
+        assert false
+    | Some _ ->
+        if !mutex_state_when_cancelled then
+          Printf.printf "✓ PASS: Mutex was properly reacquired before exception\n%!"
+        else (
+          Printf.printf "❌ FAIL: Mutex was NOT reacquired - this is the bug!\n%!";
+          Printf.printf "❌ Condition.wait should reacquire mutex before raising exception\n%!";
+          assert false
+        )
+  )
+
 let test_condition_mutex_requirement () =
   Printf.printf "=== Testing Condition mutex requirement ===\n%!";
 
@@ -180,5 +240,6 @@ let () =
   test_condition_basic ();
   test_condition_broadcast ();
   test_condition_producer_consumer ();
+  test_condition_cancellation_mutex_state ();
   test_condition_mutex_requirement ();
   Printf.printf "\n🎉 All Condition Variable tests passed!\n%!"

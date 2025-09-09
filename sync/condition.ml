@@ -31,15 +31,13 @@ let wait condition mutex =
   (* Wait for the condition to be signaled *)
   (match Effect.perform (Trigger.Await trigger) with
   | None ->
-      (* We were signaled normally *)
-      ()
+      (* We were signaled normally - reacquire mutex and return *)
+      Mutex.lock mutex
   | Some (exn, bt) ->
-      (* Cancellation occurred - no cleanup needed, triggers are GC'd *)
+      (* Cancellation occurred - reacquire mutex then raise exception *)
+      Mutex.lock mutex;
       Printexc.raise_with_backtrace exn bt
-  );
-
-  (* Reacquire the mutex before returning *)
-  Mutex.lock mutex
+  )
 
 let signal condition =
   (* Atomically remove one waiter from the list *)
